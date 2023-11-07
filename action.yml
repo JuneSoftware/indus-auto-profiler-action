@@ -1,0 +1,22 @@
+name: 'Profiling Automation'
+description: 'Automation tool for build profiling on Android and iOS devices'
+author: ''
+inputs:
+  credentials:
+    description: 'GCP credentials'
+    required: true
+  bucketName:
+    description: 'Bucket name'
+    required: true
+  packageName:
+    description: 'Package name'
+    required: true
+  versionNumber:
+    description: 'Version number(0.0.0)'
+    required: true
+  versionCode:
+    description: 'Version ccode'
+    required: true
+runs:
+  using: 'node16'
+  main: 'dist/main.js'
