@@ -3,7 +3,7 @@ import { asyncExec } from './asyncExec';
 import { DeviceBase } from './device';
 import { Android } from './android';
 import { iOS } from './ios';
-import { apkPath, appPath } from './cloudAccess';
+import { apkPath, appPath } from './downloadBuilds';
 import * as fs from 'fs';
 
 export const client = Adb.createClient();
