@@ -1,7 +1,7 @@
 import { DeviceBase } from './device';
 import { asyncExec } from './asyncExec';
 import { packageName, uniqueId } from './main';
-import { appPath, versionBundle } from './downloadBuilds';
+import { appPath, versionBundle } from './cloudAccess';
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { promisify } from 'util';

@@ -13,7 +13,7 @@ exports.iOS = void 0;
 const device_1 = require("./device");
 const asyncExec_1 = require("./asyncExec");
 const main_1 = require("./main");
-const downloadBuilds_1 = require("./downloadBuilds");
+const cloudAccess_1 = require("./cloudAccess");
 const child_process_1 = require("child_process");
 const events_1 = require("events");
 const util_1 = require("util");
@@ -40,7 +40,7 @@ class iOS extends device_1.DeviceBase {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 //Create target directory
-                const resultsName = `Results_${downloadBuilds_1.versionBundle}`;
+                const resultsName = `Results_${cloudAccess_1.versionBundle}`;
                 const targetPath = path.join(__dirname, '../', `${resultsName}`, main_1.uniqueId, this.id);
                 if (!fs.existsSync(resultsName)) {
                     fs.mkdirSync(resultsName);
@@ -83,7 +83,7 @@ class iOS extends device_1.DeviceBase {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 //Install the app
-                const uninstallResult = yield this.runShellCode(`xcrun devicectl device install app --device ${this.id} "${(0, downloadBuilds_1.appPath)()}"`);
+                const uninstallResult = yield this.runShellCode(`xcrun devicectl device install app --device ${this.id} "${(0, cloudAccess_1.appPath)()}"`);
                 this.logout("Uninstall", uninstallResult);
                 //Launch the app
                 const launchResult = yield this.runShellCode(`xcrun devicectl device process launch --terminate-existing --device ${this.id} ${main_1.packageName} profilingAutomation true`);

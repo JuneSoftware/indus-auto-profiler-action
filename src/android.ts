@@ -2,7 +2,7 @@ import { Adb, Device } from '@u4/adbkit';
 import { packageName, uniqueId } from './main';
 import { DeviceBase } from './device';
 import { client } from './devices';
-import { apkPath, versionBundle } from './downloadBuilds';
+import { apkPath, versionBundle } from './cloudAccess';
 import { asyncExec } from './asyncExec';
 import * as fs from 'fs';
 import * as path from 'path';

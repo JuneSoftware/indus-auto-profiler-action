@@ -1,7 +1,8 @@
 import { DeviceBase } from "./device";
 import { getDevices } from "./devices";
-import { downloadBuilds, versionBundle } from "./downloadBuilds";
+import { downloadBuilds, versionBundle, uploadResults } from "./cloudAccess";
 const core = require('@actions/core');
+import * as path from 'path';
 
 export const packageName = core.getInput('packageName');
 //Create unique ID based on data time
@@ -27,7 +28,9 @@ async function main() {
   //Step 4: Wait for execution to be completed on all the connected devices
   waitForAllDevicesToComplete(devices).then(() => {
     allDevicesCompleted(devices);
-    core.setOutput('resultsPath', `Results_${versionBundle}`);
+    const resultsName = `Results_${versionBundle}`;
+    const targetPath = path.join(__dirname, '../', `${resultsName}`);
+    uploadResults(targetPath);
     console.log("All devices have completed their execution.");
   }).catch((err) => {
     console.error("An error occurred while waiting for devices to complete:", err);
