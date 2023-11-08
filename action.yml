@@ -6,13 +6,7 @@ inputs:
     description: 'GCP credentials'
     required: true
   bucketName:
-    description: 'Bucket name builds download from'
-    required: true
-  uploadBucketName:
-    description: 'Bucket name results upload to'
-    required: true
-  uploadDestination:
-    description: 'Results upload destination'
+    description: 'Bucket name'
     required: true
   packageName:
     description: 'Package name'

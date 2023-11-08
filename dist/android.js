@@ -14,7 +14,7 @@ const adbkit_1 = require("@u4/adbkit");
 const main_1 = require("./main");
 const device_1 = require("./device");
 const devices_1 = require("./devices");
-const cloudAccess_1 = require("./cloudAccess");
+const downloadBuilds_1 = require("./downloadBuilds");
 const asyncExec_1 = require("./asyncExec");
 const fs = require("fs");
 const path = require("path");
@@ -34,7 +34,7 @@ class Android extends device_1.DeviceBase {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 //Create target directory
-                const resultsName = `Results_${cloudAccess_1.versionBundle}`;
+                const resultsName = `Results_${downloadBuilds_1.versionBundle}`;
                 const targetPath = path.join(__dirname, '../', `${resultsName}`, main_1.uniqueId, this.id);
                 if (!fs.existsSync(resultsName)) {
                     fs.mkdirSync(resultsName);
@@ -68,7 +68,7 @@ class Android extends device_1.DeviceBase {
                 const uninstallResult = yield deviceClient.uninstall(main_1.packageName);
                 this.logout("Uninstall", uninstallResult);
                 //Install the apk
-                const installResult = yield deviceClient.install(cloudAccess_1.apkPath);
+                const installResult = yield deviceClient.install(downloadBuilds_1.apkPath);
                 this.logout("Install", installResult);
                 //Grant required permissions to the APK
                 const setPermissionResult = yield this.runShellCode(`pm grant ${main_1.packageName} android.permission.RECORD_AUDIO`);

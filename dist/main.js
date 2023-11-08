@@ -11,8 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uniqueId = exports.packageName = void 0;
 const devices_1 = require("./devices");
-const cloudAccess_1 = require("./cloudAccess");
-const core = require('@actions/core');
+const downloadBuilds_1 = require("./downloadBuilds");
+const core = require("@actions/core");
 const path = require("path");
 exports.packageName = core.getInput('packageName');
 //Create unique ID based on data time
@@ -23,7 +23,7 @@ main();
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         //Step 1: Download builds
-        yield (0, cloudAccess_1.downloadBuilds)();
+        yield (0, downloadBuilds_1.downloadBuilds)();
         //Step 2: Fetch all the connected devices
         const devices = yield (0, devices_1.getDevices)();
         //Step 3: Start execution on all the devices
@@ -34,9 +34,9 @@ function main() {
         //Step 4: Wait for execution to be completed on all the connected devices
         waitForAllDevicesToComplete(devices).then(() => {
             allDevicesCompleted(devices);
-            const resultsName = `Results_${cloudAccess_1.versionBundle}`;
+            const resultsName = `Results_${downloadBuilds_1.versionBundle}`;
             const targetPath = path.join(__dirname, '../', `${resultsName}`);
-            (0, cloudAccess_1.uploadResults)(targetPath);
+            core.setOutput('resultsPath', targetPath);
             console.log("All devices have completed their execution.");
         }).catch((err) => {
             console.error("An error occurred while waiting for devices to complete:", err);

@@ -10,48 +10,35 @@ export function appPath() {
 }
 
 const bucketName = core.getInput('bucketName');
-const uploadBucketName = core.getInput('uploadBucketName');
-const uploadDestination = core.getInput('uploadDestination');
 const versionCode = core.getInput('versionCode');
 const versionNumber = core.getInput('versionNumber');
 const credentialsString = core.getInput('credentials');
 export const versionBundle = `${versionNumber}_${versionCode}`;
 
 const zipPath = path.join(__dirname, '../', 'App.zip');
-const storageConfig = { credentials: JSON.parse(credentialsString) }
+const storageConfig = { credentials:JSON.parse(credentialsString) }
 const storage = new Storage(storageConfig)
+const downloadAPKOptions = { destination: apkPath }
+const downloadAPPOptions = { destination: zipPath }
 
 export async function downloadBuilds() {
     try {
         const apkLink = await fetchLink('Android/Android_Ver', '.apk');
         const appLink = await fetchLink('iOS/iOS_Ver', '.app.zip');
-            
+
         if (apkLink.trim().length > 0) {
-            const downloadAPKOptions = { destination: apkPath }
             await storage.bucket(bucketName).file(apkLink).download(downloadAPKOptions);
             console.log('APK downloaded')
         } else {
             console.log('APK didnt downloaded')
         }
         if (appLink.trim().length > 0) {
-            const downloadAPPOptions = { destination: zipPath }
             await storage.bucket(bucketName).file(appLink).download(downloadAPPOptions);
             await extract(zipPath, { dir: path.join(__dirname, '../') })
             console.log('APP downloaded')
         } else {
             console.log('APP didnt downloaded')
         }
-    } catch (ex) {
-        console.log(ex);
-    }
-}
-
-export async function uploadResults(path: string) {
-    try {
-        console.log('Results upload started');
-        const uploadOptions = { destination: uploadDestination }
-        await storage.bucket(uploadBucketName).upload(path, uploadOptions);
-        console.log('Results upload completed');
     } catch (ex) {
         console.log(ex);
     }
