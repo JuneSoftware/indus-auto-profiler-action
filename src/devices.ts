@@ -5,6 +5,7 @@ import { Android } from './android';
 import { iOS } from './ios';
 import { apkPath, appPath } from './downloadBuilds';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export const client = Adb.createClient();
 
@@ -17,15 +18,36 @@ export async function getDevices(): Promise<DeviceBase[]> {
         //Fetch Android devices if APK exists
         if (fs.existsSync(apkPath)) {
             for (const device of devices) {
-                devicesConnected.push(new Android(device.id));
+                const canConnect = device.type === 'device';
+                console.log(`[Android] UUID: ${device.id}, Pairing State: ${device.type}, Connected: ${canConnect}`);
+                if (canConnect) {
+                    devicesConnected.push(new Android(device.id));
+                }
             }
         }
 
         //Fetch iOS devices if its a Mac and APP exists
         if (process.platform === 'darwin' && appPath().trim().length > 0 && fs.existsSync(appPath())) {
-            const result = await asyncExec('idevice_id');
-            const identifiers = result.split('\n').map(line => line.split(/\s+/)[0]).filter(Boolean);
-            identifiers.forEach((identifier) => devicesConnected.push(new iOS(identifier)));
+            //Fetch iOS devices if its a Mac and APP exists
+            var filePath = path.join(__dirname, '../', 'iPhones.json');
+            var result = await asyncExec(`xcrun devicectl list devices -j ${filePath}`);
+            if (result) {
+                var iPhoneJsonFile = fs.readFileSync(filePath, 'utf-8');
+                fs.unlinkSync(filePath);
+                const data = JSON.parse(iPhoneJsonFile);
+
+                //Extract device UUID and pairing state
+                const iDevices = data.result.devices;
+                for (const device of iDevices) {
+                    const uuid = device.hardwareProperties.udid;
+                    const pairingState = device.connectionProperties.pairingState;
+                    const canConnect = pairingState === 'paired';
+                    console.log(`[iOS] UUID: ${uuid}, Pairing State: ${pairingState}, Connected: ${canConnect}`);
+                    if (canConnect) {
+                        devicesConnected.push(new iOS(uuid))
+                    }
+                }
+            }
         }
     } catch (err) {
         console.error('Something went wrong:', err);

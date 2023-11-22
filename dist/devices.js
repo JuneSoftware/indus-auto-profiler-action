@@ -16,6 +16,7 @@ const android_1 = require("./android");
 const ios_1 = require("./ios");
 const downloadBuilds_1 = require("./downloadBuilds");
 const fs = require("fs");
+const path = require("path");
 exports.client = adbkit_1.Adb.createClient();
 function getDevices() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -25,14 +26,34 @@ function getDevices() {
             //Fetch Android devices if APK exists
             if (fs.existsSync(downloadBuilds_1.apkPath)) {
                 for (const device of devices) {
-                    devicesConnected.push(new android_1.Android(device.id));
+                    const canConnect = device.type === 'device';
+                    console.log(`[Android] UUID: ${device.id}, Pairing State: ${device.type}, Connected: ${canConnect}`);
+                    if (canConnect) {
+                        devicesConnected.push(new android_1.Android(device.id));
+                    }
                 }
             }
             //Fetch iOS devices if its a Mac and APP exists
             if (process.platform === 'darwin' && (0, downloadBuilds_1.appPath)().trim().length > 0 && fs.existsSync((0, downloadBuilds_1.appPath)())) {
-                const result = yield (0, asyncExec_1.asyncExec)('idevice_id');
-                const identifiers = result.split('\n').map(line => line.split(/\s+/)[0]).filter(Boolean);
-                identifiers.forEach((identifier) => devicesConnected.push(new ios_1.iOS(identifier)));
+                //Fetch iOS devices if its a Mac and APP exists
+                var filePath = path.join(__dirname, '../', 'iPhones.json');
+                var result = yield (0, asyncExec_1.asyncExec)(`xcrun devicectl list devices -j ${filePath}`);
+                if (result) {
+                    var iPhoneJsonFile = fs.readFileSync(filePath, 'utf-8');
+                    fs.unlinkSync(filePath);
+                    const data = JSON.parse(iPhoneJsonFile);
+                    //Extract device UUID and pairing state
+                    const iDevices = data.result.devices;
+                    for (const device of iDevices) {
+                        const uuid = device.hardwareProperties.udid;
+                        const pairingState = device.connectionProperties.pairingState;
+                        const canConnect = pairingState === 'paired';
+                        console.log(`[iOS] UUID: ${uuid}, Pairing State: ${pairingState}, Connected: ${canConnect}`);
+                        if (canConnect) {
+                            devicesConnected.push(new ios_1.iOS(uuid));
+                        }
+                    }
+                }
             }
         }
         catch (err) {
