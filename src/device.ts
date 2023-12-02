@@ -1,3 +1,5 @@
+import { logLine } from "./logLine";
+
 export abstract class DeviceBase {
     id: string;
     executionCompleted: boolean;
@@ -21,6 +23,9 @@ export abstract class DeviceBase {
     }
 
     public Log(data: string): void {
+        if (data.includes("[ProfilingAutomation]")){
+            logLine(this.id, 'Device Log', data.split('[ProfilingAutomation]')[1]);
+        }
         if (data.includes("[ProfilingAutomation] Completed Automation")) {
             this.ProfilingFinished();
         }
@@ -29,7 +34,7 @@ export abstract class DeviceBase {
     private async ProfilingFinished() {
         try {
             await this.GetResultFiles();
-            console.log(`[${this.id}] Received JSON`);
+            logLine(this.id, 'Received JSON', 'Successful');
             if (this.timeoutObject !== undefined)
                 clearTimeout(this.timeoutObject);
             this.executionCompleted = true;

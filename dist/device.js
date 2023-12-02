@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeviceBase = void 0;
+const logLine_1 = require("./logLine");
 class DeviceBase {
     constructor(id) {
         this.id = id;
@@ -23,6 +24,9 @@ class DeviceBase {
         }, 1800000);
     }
     Log(data) {
+        if (data.includes("[ProfilingAutomation]")) {
+            (0, logLine_1.logLine)(this.id, 'Device Log', data.split('[ProfilingAutomation]')[1]);
+        }
         if (data.includes("[ProfilingAutomation] Completed Automation")) {
             this.ProfilingFinished();
         }
@@ -31,7 +35,7 @@ class DeviceBase {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield this.GetResultFiles();
-                console.log(`[${this.id}] Received JSON`);
+                (0, logLine_1.logLine)(this.id, 'Received JSON', 'Successful');
                 if (this.timeoutObject !== undefined)
                     clearTimeout(this.timeoutObject);
                 this.executionCompleted = true;

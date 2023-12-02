@@ -1,6 +1,7 @@
 import { DeviceBase } from "./device";
 import { getDevices } from "./devices";
 import { downloadBuilds, versionBundle } from "./downloadBuilds";
+import { logLine } from "./logLine";
 import * as core from '@actions/core';
 import * as path from 'path';
 
@@ -31,7 +32,7 @@ async function main() {
     const resultsName = `Results_${versionBundle}`
     const targetPath = path.join(__dirname, '../', `${resultsName}`);
     core.setOutput('resultsPath', targetPath);
-    console.log("All devices have completed their execution.");
+    logLine('None', 'Execution Completed', "All devices have completed their execution.");
   }).catch((err) => {
     console.error("An error occurred while waiting for devices to complete:", err);
   });

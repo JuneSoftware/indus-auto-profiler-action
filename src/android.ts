@@ -4,6 +4,7 @@ import { DeviceBase } from './device';
 import { client } from './devices';
 import { apkPath, versionBundle } from './downloadBuilds';
 import { asyncExec } from './asyncExec';
+import { logLine } from './logLine'
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -22,17 +23,15 @@ export class Android extends DeviceBase {
 
     Stop(): void {
         this.conn.end();
-        console.log(`Completed on ${this.id}`);
+        this.logout(`Execution Completed`, 'Execution completed for Android device');
     }
 
     async GetResultFiles(): Promise<void> {
         try {
+            this.logout('Completed Routines',`Will start copying files`);
             //Create target directory
             const resultsName = `Results_${versionBundle}`
             const targetPath = path.join(__dirname, '../', `${resultsName}`, uniqueId, this.id);
-            if (!fs.existsSync(resultsName)) {
-                fs.mkdirSync(resultsName);
-            }
             fs.mkdirSync(targetPath, { recursive: true });
 
             //Fetch ProfilingAutomationFilesNames text file
@@ -41,7 +40,9 @@ export class Android extends DeviceBase {
             //Download all the files to targetPath
             for (const file of filesNames) {
                 if (file !== '') {
+                    this.logout('File Copying',`[${file}]`);
                     await this.runADBCode(`pull "storage/emulated/0/Android/data/${packageName}/files/${file}" ${targetPath}`);
+                    this.logout('File Copied',`[${file}]`);
                 }
             }
         } catch (ex) {
@@ -132,6 +133,6 @@ export class Android extends DeviceBase {
     }
 
     private logout(logHeader: string, log: string) {
-        console.log(`[${this.id}] ${logHeader}: ${log}`)
+        logLine(this.id, logHeader, log)
     }
 }

@@ -2,6 +2,7 @@ import { DeviceBase } from './device';
 import { asyncExec } from './asyncExec';
 import { packageName, uniqueId } from './main';
 import { appPath, versionBundle } from './downloadBuilds';
+import { logLine } from './logLine';
 import { spawn, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { promisify } from 'util';
@@ -12,8 +13,7 @@ export class iOS extends DeviceBase {
   private logEmitter: EventEmitter;
   private logProcess: ChildProcess | null;
   private readFile = promisify(fs.readFile);
-  private unlink = promisify(fs.unlink);
-  private rmdir = promisify(fs.rmdir);
+  private rm = promisify(fs.rm);
 
   constructor(id: string) {
     super(id)
@@ -28,17 +28,15 @@ export class iOS extends DeviceBase {
 
   Stop(): void {
     this.stopLogProcess();
-    console.log(`Completed on ${this.id}`);
+    this.logout(`Execution Completed`, 'Execution completed for iOS device');
   }
 
   async GetResultFiles(): Promise<void> {
     try {
+      this.logout('Completed Routines',`Will start copying files`);
       //Create target directory
       const resultsName = `Results_${versionBundle}`
       const targetPath = path.join(__dirname, '../', `${resultsName}`, uniqueId, this.id);
-      if (!fs.existsSync(resultsName)) {
-        fs.mkdirSync(resultsName);
-      }
       fs.mkdirSync(targetPath, { recursive: true });
 
       //Fetch ProfilingAutomationFilesNames text file
@@ -52,19 +50,16 @@ export class iOS extends DeviceBase {
       //Download all the files to targetPath
       for (const file of filesNames) {
         if (file !== '') {
+          this.logout('File Copying',`[${file}]`);
           await this.runShellCode(`ios-deploy --bundle_id ${packageName} --download="Documents/${file}" --to ${targetPath} --id ${this.id}`);
+          this.logout('File Copied',`[${file}]`);
           fs.renameSync(path.join(targetPath, 'Documents', file), path.join(targetPath, file))
         }
       }
 
-      //Delete the ProfilingAutomationFilesNames file
-      await this.unlink(filePath);
-
       //Delete the directory
-      const dirPath = path.dirname(filePath);
-      await this.rmdir(dirPath);
-      await this.rmdir(this.id);
-      await this.rmdir(path.join(targetPath, 'Documents'));
+      await this.rm(this.id, { recursive: true, force: true });
+      await this.rm(path.join(targetPath, 'Documents'), { recursive: true, force: true });
     } catch (err) {
       console.error(`Error reading JSON file: ${err}`);
     }
@@ -141,6 +136,6 @@ export class iOS extends DeviceBase {
   }
 
   private logout(logHeader: string, log: string) {
-    console.log(`[${this.id}] ${logHeader}: ${log}`)
+    logLine(this.id, logHeader, log)
   }
 }

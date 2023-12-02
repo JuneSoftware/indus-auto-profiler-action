@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.uniqueId = exports.packageName = void 0;
 const devices_1 = require("./devices");
 const downloadBuilds_1 = require("./downloadBuilds");
+const logLine_1 = require("./logLine");
 const core = require("@actions/core");
 const path = require("path");
 exports.packageName = core.getInput('packageName');
@@ -37,7 +38,7 @@ function main() {
             const resultsName = `Results_${downloadBuilds_1.versionBundle}`;
             const targetPath = path.join(__dirname, '../', `${resultsName}`);
             core.setOutput('resultsPath', targetPath);
-            console.log("All devices have completed their execution.");
+            (0, logLine_1.logLine)('None', 'Execution Completed', "All devices have completed their execution.");
         }).catch((err) => {
             console.error("An error occurred while waiting for devices to complete:", err);
         });

@@ -1,4 +1,5 @@
 import { Storage } from '@google-cloud/storage';
+import { logLine } from './logLine';
 import extract = require("extract-zip");
 import * as path from 'path';
 import * as fs from 'fs';
@@ -28,16 +29,16 @@ export async function downloadBuilds() {
 
         if (apkLink.trim().length > 0) {
             await storage.bucket(bucketName).file(apkLink).download(downloadAPKOptions);
-            console.log('APK downloaded')
+            logLine('None', 'APK download', 'Completed')
         } else {
-            console.log('APK didnt downloaded')
+            logLine('None', 'APK download', 'Failed')
         }
         if (appLink.trim().length > 0) {
             await storage.bucket(bucketName).file(appLink).download(downloadAPPOptions);
             await extract(zipPath, { dir: path.join(__dirname, '../') })
-            console.log('APP downloaded')
+            logLine('None', 'APP download', 'Completed')
         } else {
-            console.log('APP didnt downloaded')
+            logLine('None', 'APP download', 'Failed')
         }
     } catch (ex) {
         console.log(ex);

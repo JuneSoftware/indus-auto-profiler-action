@@ -16,6 +16,7 @@ const device_1 = require("./device");
 const devices_1 = require("./devices");
 const downloadBuilds_1 = require("./downloadBuilds");
 const asyncExec_1 = require("./asyncExec");
+const logLine_1 = require("./logLine");
 const fs = require("fs");
 const path = require("path");
 class Android extends device_1.DeviceBase {
@@ -28,17 +29,15 @@ class Android extends device_1.DeviceBase {
     }
     Stop() {
         this.conn.end();
-        console.log(`Completed on ${this.id}`);
+        this.logout(`Execution Completed`, 'Execution completed for Android device');
     }
     GetResultFiles() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                this.logout('Completed Routines', `Will start copying files`);
                 //Create target directory
                 const resultsName = `Results_${downloadBuilds_1.versionBundle}`;
                 const targetPath = path.join(__dirname, '../', `${resultsName}`, main_1.uniqueId, this.id);
-                if (!fs.existsSync(resultsName)) {
-                    fs.mkdirSync(resultsName);
-                }
                 fs.mkdirSync(targetPath, { recursive: true });
                 //Fetch ProfilingAutomationFilesNames text file
                 const filesList = yield this.runShellCode(`cat storage/emulated/0/Android/data/${main_1.packageName}/files/ProfilingAutomationFilesNames.txt`);
@@ -46,7 +45,9 @@ class Android extends device_1.DeviceBase {
                 //Download all the files to targetPath
                 for (const file of filesNames) {
                     if (file !== '') {
+                        this.logout('File Copying', `[${file}]`);
                         yield this.runADBCode(`pull "storage/emulated/0/Android/data/${main_1.packageName}/files/${file}" ${targetPath}`);
+                        this.logout('File Copied', `[${file}]`);
                     }
                 }
             }
@@ -135,7 +136,7 @@ class Android extends device_1.DeviceBase {
         });
     }
     logout(logHeader, log) {
-        console.log(`[${this.id}] ${logHeader}: ${log}`);
+        (0, logLine_1.logLine)(this.id, logHeader, log);
     }
 }
 exports.Android = Android;

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadBuilds = exports.versionBundle = exports.appPath = exports.apkPath = void 0;
 const storage_1 = require("@google-cloud/storage");
+const logLine_1 = require("./logLine");
 const extract = require("extract-zip");
 const path = require("path");
 const fs = require("fs");
@@ -37,18 +38,18 @@ function downloadBuilds() {
             const appLink = yield fetchLink('iOS/iOS_Ver', '.app.zip');
             if (apkLink.trim().length > 0) {
                 yield storage.bucket(bucketName).file(apkLink).download(downloadAPKOptions);
-                console.log('APK downloaded');
+                (0, logLine_1.logLine)('None', 'APK download', 'Completed');
             }
             else {
-                console.log('APK didnt downloaded');
+                (0, logLine_1.logLine)('None', 'APK download', 'Failed');
             }
             if (appLink.trim().length > 0) {
                 yield storage.bucket(bucketName).file(appLink).download(downloadAPPOptions);
                 yield extract(zipPath, { dir: path.join(__dirname, '../') });
-                console.log('APP downloaded');
+                (0, logLine_1.logLine)('None', 'APP download', 'Completed');
             }
             else {
-                console.log('APP didnt downloaded');
+                (0, logLine_1.logLine)('None', 'APP download', 'Failed');
             }
         }
         catch (ex) {

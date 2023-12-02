@@ -14,6 +14,7 @@ const device_1 = require("./device");
 const asyncExec_1 = require("./asyncExec");
 const main_1 = require("./main");
 const downloadBuilds_1 = require("./downloadBuilds");
+const logLine_1 = require("./logLine");
 const child_process_1 = require("child_process");
 const events_1 = require("events");
 const util_1 = require("util");
@@ -23,8 +24,7 @@ class iOS extends device_1.DeviceBase {
     constructor(id) {
         super(id);
         this.readFile = (0, util_1.promisify)(fs.readFile);
-        this.unlink = (0, util_1.promisify)(fs.unlink);
-        this.rmdir = (0, util_1.promisify)(fs.rmdir);
+        this.rm = (0, util_1.promisify)(fs.rm);
         this.id = id;
         this.logProcess = null;
         this.logEmitter = new events_1.EventEmitter();
@@ -34,17 +34,15 @@ class iOS extends device_1.DeviceBase {
     }
     Stop() {
         this.stopLogProcess();
-        console.log(`Completed on ${this.id}`);
+        this.logout(`Execution Completed`, 'Execution completed for iOS device');
     }
     GetResultFiles() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                this.logout('Completed Routines', `Will start copying files`);
                 //Create target directory
                 const resultsName = `Results_${downloadBuilds_1.versionBundle}`;
                 const targetPath = path.join(__dirname, '../', `${resultsName}`, main_1.uniqueId, this.id);
-                if (!fs.existsSync(resultsName)) {
-                    fs.mkdirSync(resultsName);
-                }
                 fs.mkdirSync(targetPath, { recursive: true });
                 //Fetch ProfilingAutomationFilesNames text file
                 const fileName = 'Documents/ProfilingAutomationFilesNames.txt';
@@ -56,17 +54,15 @@ class iOS extends device_1.DeviceBase {
                 //Download all the files to targetPath
                 for (const file of filesNames) {
                     if (file !== '') {
+                        this.logout('File Copying', `[${file}]`);
                         yield this.runShellCode(`ios-deploy --bundle_id ${main_1.packageName} --download="Documents/${file}" --to ${targetPath} --id ${this.id}`);
+                        this.logout('File Copied', `[${file}]`);
                         fs.renameSync(path.join(targetPath, 'Documents', file), path.join(targetPath, file));
                     }
                 }
-                //Delete the ProfilingAutomationFilesNames file
-                yield this.unlink(filePath);
                 //Delete the directory
-                const dirPath = path.dirname(filePath);
-                yield this.rmdir(dirPath);
-                yield this.rmdir(this.id);
-                yield this.rmdir(path.join(targetPath, 'Documents'));
+                yield this.rm(this.id, { recursive: true, force: true });
+                yield this.rm(path.join(targetPath, 'Documents'), { recursive: true, force: true });
             }
             catch (err) {
                 console.error(`Error reading JSON file: ${err}`);
@@ -138,7 +134,7 @@ class iOS extends device_1.DeviceBase {
         }
     }
     logout(logHeader, log) {
-        console.log(`[${this.id}] ${logHeader}: ${log}`);
+        (0, logLine_1.logLine)(this.id, logHeader, log);
     }
 }
 exports.iOS = iOS;

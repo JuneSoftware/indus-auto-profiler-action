@@ -15,6 +15,7 @@ const asyncExec_1 = require("./asyncExec");
 const android_1 = require("./android");
 const ios_1 = require("./ios");
 const downloadBuilds_1 = require("./downloadBuilds");
+const logLine_1 = require("./logLine");
 const fs = require("fs");
 const path = require("path");
 exports.client = adbkit_1.Adb.createClient();
@@ -27,7 +28,7 @@ function getDevices() {
             if (fs.existsSync(downloadBuilds_1.apkPath)) {
                 for (const device of devices) {
                     const canConnect = device.type === 'device';
-                    console.log(`[Android] UUID: ${device.id}, Pairing State: ${device.type}, Connected: ${canConnect}`);
+                    (0, logLine_1.logLine)(device.id, 'Android', `Pairing State: ${device.type}, Connected: ${canConnect}`);
                     if (canConnect) {
                         devicesConnected.push(new android_1.Android(device.id));
                     }
@@ -48,7 +49,7 @@ function getDevices() {
                         const uuid = device.hardwareProperties.udid;
                         const pairingState = device.connectionProperties.pairingState;
                         const canConnect = pairingState === 'paired';
-                        console.log(`[iOS] UUID: ${uuid}, Pairing State: ${pairingState}, Connected: ${canConnect}`);
+                        (0, logLine_1.logLine)(uuid, 'iOS', `Pairing State: ${pairingState}, Connected: ${canConnect}`);
                         if (canConnect) {
                             devicesConnected.push(new ios_1.iOS(uuid));
                         }
