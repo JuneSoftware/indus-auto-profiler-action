@@ -19,7 +19,7 @@ export abstract class DeviceBase {
         this.timeoutObject = setTimeout(() => {
             //Execution timeout
             this.executionCompleted = true;
-        }, 1800000);
+        }, 14400000);
     }
 
     public Log(data: string): void {

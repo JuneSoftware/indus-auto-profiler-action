@@ -21,7 +21,7 @@ class DeviceBase {
         this.timeoutObject = setTimeout(() => {
             //Execution timeout
             this.executionCompleted = true;
-        }, 1800000);
+        }, 14400000);
     }
     Log(data) {
         if (data.includes("[ProfilingAutomation]")) {
