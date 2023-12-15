@@ -1,5 +1,5 @@
 import { Storage } from '@google-cloud/storage';
-import { logLine } from './logLine';
+import { logLine, log } from './logLine';
 import extract = require("extract-zip");
 import * as path from 'path';
 import * as fs from 'fs';
@@ -19,8 +19,6 @@ export const versionBundle = `${versionNumber}_${versionCode}`;
 const zipPath = path.join(__dirname, '../', 'App.zip');
 const storageConfig = { credentials:JSON.parse(credentialsString) }
 const storage = new Storage(storageConfig)
-const downloadAPKOptions = { destination: apkPath }
-const downloadAPPOptions = { destination: zipPath }
 
 export async function downloadBuilds() {
     try {
@@ -28,15 +26,14 @@ export async function downloadBuilds() {
         const appLink = await fetchLink('iOS/iOS_Ver', '.app.zip');
 
         if (apkLink.trim().length > 0) {
-            await storage.bucket(bucketName).file(apkLink).download(downloadAPKOptions);
-            logLine('None', 'APK download', 'Completed')
+            await downloadFileWithProgress('APK', bucketName, apkLink, apkPath);
         } else {
             logLine('None', 'APK download', 'Failed')
         }
         if (appLink.trim().length > 0) {
-            await storage.bucket(bucketName).file(appLink).download(downloadAPPOptions);
+            await downloadFileWithProgress('APP', bucketName, appLink, zipPath);
             await extract(zipPath, { dir: path.join(__dirname, '../') })
-            logLine('None', 'APP download', 'Completed')
+            logLine('None', 'APP extraction', 'Completed')
         } else {
             logLine('None', 'APP download', 'Failed')
         }
@@ -92,4 +89,46 @@ function tryGetAppPath(rootDir: string): string {
     }
 
     return ''; // Return empty if the substring is not found
+}
+
+async function downloadFileWithProgress(tag: string, bucketName: string, srcFilename: string, destFilename: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+        const bucket = storage.bucket(bucketName);
+        const file = bucket.file(srcFilename);
+        const updateInterval = 500;
+        const stream = file.createReadStream();
+        const localWriteStream = fs.createWriteStream(destFilename);
+
+        let downloadedBytes = 0;
+        let lastUpdate = Date.now();
+
+        const updateProgress = () => {
+            log('None', `${tag} download`, `Downloaded ${(downloadedBytes / (1024 * 1024)).toFixed(2)}mb \r`);
+            lastUpdate = Date.now();
+        };
+
+        stream.on('data', (chunk: Buffer) => {
+            downloadedBytes += chunk.length;
+            const now = Date.now();
+            if (now - lastUpdate > updateInterval) {
+                updateProgress();
+            }
+        });
+
+        stream.on('error', (error: Error) => {
+            console.error('Error downloading file:', error);
+            reject(error);
+        });
+
+        stream.on('end', () => {
+            if (Date.now() - lastUpdate >= 500) {
+                updateProgress();
+            }
+            log('None', `${tag} download`, 'Completed');
+            console.log('');
+            resolve();
+        });
+
+        stream.pipe(localWriteStream);
+    });
 }

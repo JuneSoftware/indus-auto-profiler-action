@@ -29,24 +29,21 @@ exports.versionBundle = `${versionNumber}_${versionCode}`;
 const zipPath = path.join(__dirname, '../', 'App.zip');
 const storageConfig = { credentials: JSON.parse(credentialsString) };
 const storage = new storage_1.Storage(storageConfig);
-const downloadAPKOptions = { destination: exports.apkPath };
-const downloadAPPOptions = { destination: zipPath };
 function downloadBuilds() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const apkLink = yield fetchLink('Android/Android_Ver', '.apk');
             const appLink = yield fetchLink('iOS/iOS_Ver', '.app.zip');
             if (apkLink.trim().length > 0) {
-                yield storage.bucket(bucketName).file(apkLink).download(downloadAPKOptions);
-                (0, logLine_1.logLine)('None', 'APK download', 'Completed');
+                yield downloadFileWithProgress('APK', bucketName, apkLink, exports.apkPath);
             }
             else {
                 (0, logLine_1.logLine)('None', 'APK download', 'Failed');
             }
             if (appLink.trim().length > 0) {
-                yield storage.bucket(bucketName).file(appLink).download(downloadAPPOptions);
+                yield downloadFileWithProgress('APP', bucketName, appLink, zipPath);
                 yield extract(zipPath, { dir: path.join(__dirname, '../') });
-                (0, logLine_1.logLine)('None', 'APP download', 'Completed');
+                (0, logLine_1.logLine)('None', 'APP extraction', 'Completed');
             }
             else {
                 (0, logLine_1.logLine)('None', 'APP download', 'Failed');
@@ -101,4 +98,41 @@ function tryGetAppPath(rootDir) {
         }
     }
     return ''; // Return empty if the substring is not found
+}
+function downloadFileWithProgress(tag, bucketName, srcFilename, destFilename) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            const bucket = storage.bucket(bucketName);
+            const file = bucket.file(srcFilename);
+            const updateInterval = 500;
+            const stream = file.createReadStream();
+            const localWriteStream = fs.createWriteStream(destFilename);
+            let downloadedBytes = 0;
+            let lastUpdate = Date.now();
+            const updateProgress = () => {
+                (0, logLine_1.log)('None', `${tag} download`, `Downloaded ${(downloadedBytes / (1024 * 1024)).toFixed(2)}mb \r`);
+                lastUpdate = Date.now();
+            };
+            stream.on('data', (chunk) => {
+                downloadedBytes += chunk.length;
+                const now = Date.now();
+                if (now - lastUpdate > updateInterval) {
+                    updateProgress();
+                }
+            });
+            stream.on('error', (error) => {
+                console.error('Error downloading file:', error);
+                reject(error);
+            });
+            stream.on('end', () => {
+                if (Date.now() - lastUpdate >= 500) {
+                    updateProgress();
+                }
+                (0, logLine_1.log)('None', `${tag} download`, 'Completed');
+                console.log('');
+                resolve();
+            });
+            stream.pipe(localWriteStream);
+        }));
+    });
 }

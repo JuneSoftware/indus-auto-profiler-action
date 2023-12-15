@@ -9,24 +9,35 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logLine = void 0;
+exports.log = exports.logLine = void 0;
 const chalk = require("chalk");
 function logLine(id, logHeader, log) {
     return __awaiter(this, void 0, void 0, function* () {
-        var time = new Date();
-        var hours = time.getHours().toLocaleString('en-US', {
-            minimumIntegerDigits: 2,
-            useGrouping: false
-        });
-        var minutes = time.getMinutes().toLocaleString('en-US', {
-            minimumIntegerDigits: 2,
-            useGrouping: false
-        });
-        var seconds = time.getSeconds().toLocaleString('en-US', {
-            minimumIntegerDigits: 2,
-            useGrouping: false
-        });
-        console.log(chalk.blue(`[${id}]`) + chalk.yellow(`[${hours}:${minutes}:${seconds}] `) + `${logHeader}: ${log}`);
+        console.log(chalk.blue(`[${id}]`) + chalk.yellow(`[${getDateTimeString()}] `) + `${logHeader}: ${log}`);
     });
 }
 exports.logLine = logLine;
+function log(id, logHeader, log) {
+    return __awaiter(this, void 0, void 0, function* () {
+        process.stdout.clearLine(0);
+        process.stdout.cursorTo(0);
+        process.stdout.write(chalk.blue(`[${id}]`) + chalk.yellow(`[${getDateTimeString()}] `) + `${logHeader}: ${log}`);
+    });
+}
+exports.log = log;
+function getDateTimeString() {
+    var time = new Date();
+    var hours = time.getHours().toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+    });
+    var minutes = time.getMinutes().toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+    });
+    var seconds = time.getSeconds().toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+    });
+    return `${hours}:${minutes}:${seconds}`;
+}
