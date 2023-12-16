@@ -1,5 +1,5 @@
 import { Storage } from '@google-cloud/storage';
-import { logLine, log } from './logLine';
+import { logLine } from './logLine';
 import extract = require("extract-zip");
 import * as path from 'path';
 import * as fs from 'fs';
@@ -17,7 +17,7 @@ const credentialsString = core.getInput('credentials');
 export const versionBundle = `${versionNumber}_${versionCode}`;
 
 const zipPath = path.join(__dirname, '../', 'App.zip');
-const storageConfig = { credentials:JSON.parse(credentialsString) }
+const storageConfig = { credentials: JSON.parse(credentialsString) }
 const storage = new Storage(storageConfig)
 
 export async function downloadBuilds() {
@@ -95,7 +95,7 @@ async function downloadFileWithProgress(tag: string, bucketName: string, srcFile
     return new Promise<void>(async (resolve, reject) => {
         const bucket = storage.bucket(bucketName);
         const file = bucket.file(srcFilename);
-        const updateInterval = 500;
+        const updateInterval = 2000;
         const stream = file.createReadStream();
         const localWriteStream = fs.createWriteStream(destFilename);
 
@@ -103,7 +103,7 @@ async function downloadFileWithProgress(tag: string, bucketName: string, srcFile
         let lastUpdate = Date.now();
 
         const updateProgress = () => {
-            log('None', `${tag} download`, `Downloaded ${(downloadedBytes / (1024 * 1024)).toFixed(2)}mb \r`);
+            logLine('None', `${tag} download`, `Downloaded ${(downloadedBytes / (1024 * 1024)).toFixed(2)}mb`);
             lastUpdate = Date.now();
         };
 
@@ -121,11 +121,10 @@ async function downloadFileWithProgress(tag: string, bucketName: string, srcFile
         });
 
         stream.on('end', () => {
-            if (Date.now() - lastUpdate >= 500) {
+            if (Date.now() - lastUpdate >= updateInterval) {
                 updateProgress();
             }
-            log('None', `${tag} download`, 'Completed');
-            console.log('');
+            logLine('None', `${tag} download`, 'Completed');
             resolve();
         });
 

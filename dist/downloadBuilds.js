@@ -104,13 +104,13 @@ function downloadFileWithProgress(tag, bucketName, srcFilename, destFilename) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             const bucket = storage.bucket(bucketName);
             const file = bucket.file(srcFilename);
-            const updateInterval = 500;
+            const updateInterval = 2000;
             const stream = file.createReadStream();
             const localWriteStream = fs.createWriteStream(destFilename);
             let downloadedBytes = 0;
             let lastUpdate = Date.now();
             const updateProgress = () => {
-                (0, logLine_1.log)('None', `${tag} download`, `Downloaded ${(downloadedBytes / (1024 * 1024)).toFixed(2)}mb \r`);
+                (0, logLine_1.logLine)('None', `${tag} download`, `Downloaded ${(downloadedBytes / (1024 * 1024)).toFixed(2)}mb`);
                 lastUpdate = Date.now();
             };
             stream.on('data', (chunk) => {
@@ -125,11 +125,10 @@ function downloadFileWithProgress(tag, bucketName, srcFilename, destFilename) {
                 reject(error);
             });
             stream.on('end', () => {
-                if (Date.now() - lastUpdate >= 500) {
+                if (Date.now() - lastUpdate >= updateInterval) {
                     updateProgress();
                 }
-                (0, logLine_1.log)('None', `${tag} download`, 'Completed');
-                console.log('');
+                (0, logLine_1.logLine)('None', `${tag} download`, 'Completed');
                 resolve();
             });
             stream.pipe(localWriteStream);
